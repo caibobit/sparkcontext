@@ -1,0 +1,154 @@
+Research on Resource Scheduling Optimization for Containerized Microservice
+
+Peng Li1,2,  Jinquan Song1,  He Xu1,2,  Yang Zhou1
+1 School of Computer Science & Technology, Nanjing University of Posts and Telecommunications, Nanjing 210003, China
+2Jiangsu High Technology Research Key Laboratory for Wireless Sensor Networks, Jiangsu Province, Nanjing 210003, China
+
+
+Abstract: Currently, the containerized microservice architecture has been widely concerned. The single application is developed as a suite of small services to facilitate the application of the deployment, expansion and management. The traditional scheduling of microservice tends to focus on the load balancing of cluster, ignoring the quality of service(QOS). Therefore, this paper proposes a prediction model of component relevance, by adopting the optimized artificial bee colony algorithm (OABC) on the containerized microservice scheduling. The experimental results show that the OABC is preferable to the artificial bee colony algorithm (ABC) and the greedy algorithm as to the cluster load balancing and service response time aspects.
+
+Keywords: Microservice; Container; Load Balancing; Artificial Bee Colony; QOS
+
+1 Introduction
+Microservice [1] (also known as microservice architecture) and container technology has drawn more and more attention. Microservice can be seen as a refinement and simplification of service-oriented architecture (SOA) [2]. It advocates fine-grained module division, service-specific, independent deployment, collaboration, and lightweight communication mechanisms, often an HTTP resource API [3]. Such services are established within business capabilities and with clear boundaries. However it also brings some problems, the most prominent one lies in  the fine-grained quality of service, since service response time is one of the important indicators of QoS, which is the focus of this article.
+Container technology, especially the Docker container [4] provides a better implementation mechanism for microservice. The container is a logical abstraction of physical resources. It has the characteristics of less resource consumption and faster start speed [5]. It is suitable for coping with the problems of workload mutation in Internet application mode, especially for the microservice architecture. The combination of microservice and Docker containers can be considered as subversion, docker container have the characteristics of isolation, rapid distribution and easy deployment, etc. Which provides a perfect operating environment for the micro-service. But the cluster load still exhibits uneven phenomenon with the increasing in the number of microservice .
+In this paper, an improved artificial bee colony algorithm is proposed, and the microservice component correlation factor is introduced to improve the overall performance of the service and the load balance of the cluster.
+
+
+2 related work
+The existing work concentrates mainly on service performance improvement and the elastic supply of resources during container scheduling. In view of the fact that the size of microservice directly affects its performance and availability, a workload-based feature cluster algorithm is proposed, and genetic algorithm is used to improve the performance of a given workload in paper [6]. The paper [7] analyzes the performance impact of the software-defined network in the container, and optimizes multiple levels, making the performance increased by 10% -20%. In the paper [8], the performance of the application under the microservice architecture and the monomer structure is compared, so as to provide a benchmark guidance for the system designer. The paper [9] proposes an distributed scheduling system for microservice, which improves performance compared with the existing centralized scheduling method. In the paper [10], a dynamic resource allocation framework for Docker container is designed, which minimizes the cost of data center application deployment and proposes a highly efficient and extensible resource allocation algorithm. In the paper [11], an optimized ant colony method (ACO) is used to cooperate with SwarmKit for Docker container scheduling to ensure system load balancing. The paper [12] considers the introduction of sensitivity into load balancing and application performance to improve the current container-based cloud services, using heuristic algorithms to improve the performance of container applications, while also ensuring a relatively high load balancing. In the paper [13], a node selection algorithm for container deployment (NSCD) is proposed in which a fuzzy inference system (FIS) is used to dynamically predict the most suitable node (server) to deploy the selected container. The paper [14] proposes a simple swarm-like decentralized load balancing system for microservices running inside OpenVZ containers. It can potentially offer performance improvements with respect to the existing centralized container orchestration systems. In addition, some heuristic algorithms or corresponding improved algorithms are also used to improve the utilization of resources, such as genetic algorithm [15], artificial bee colony algorithm [16], particle swarm optimization [17] and ant colony algorithm [18]£¬and achieved good results. There are also some container layout tools to achieve similar results, such as Swarm [19], a native container collation tool provided by Docker, Kubernetes [20] developed by Google for managing large containers, and Marathon [21] developed by Mesosphere.
+Although the above studies have achieved good results, it can be revealed that the study of resource allocation under the containerized microservice scenario is deficient. Most containerized microservices scheduling work focus is relatively unitary. Some focus on the load balance of the resource, others focus on the performance of the service. At the same time seldom focus on the microservices associated features. In this paper, according to the characteristics of service provided by each component container under the microservice architecture, and considering the difference of the cluster load, a load balancing optimization model based on service relevance is proposed and simulated with the improved artificial bee colony algorithm to achieve the expected effect.
+The rest of this article first (Section III) Proposition a framework of system resource monitoring, and the prediction model of the correlation between microservices components. Section IV introduces the model of resource scheduling and load expression. In Section V, an improved artificial bee colony algorithm is proposed to apply to the proposed model. In order to prove the effectiveness and superiority of the proposed algorithm, we simulated them in Section VI and analyzed the results, finally verifying the original idea. The Section VII make a summary of this article.
+Figure 1. System resource monitoring and component correlation prediction architecture
+
+As shown in Figure 1, Cn represents the nth container on the node, and a monitoring software Sysdig [22] (an open source monitoring software) is applied to each work node in the cluster. It collects system performance data such as CPU, memory, IO, and all containers data, especially the network traffic data between containers, and the collected data is normalized and finally stored to the database. When there are micro-service components that need to be scheduled,the scheduling system pulls the data in the past T time and processes the data. The container IP is converted into a image ID, the collected container communication information is converted into the association between different images and the data is transmitted to the prediction module. The prediction module predicts the degree of correlation between the services to be deployed according to existing data. Detailed correlation calculation process is shown in the following section.
+When microservices are developed, developers may understand the calling relationships among the service components. However, the frequency of the calls between the various components of microservices are unpredictable, because of different users may have different preferences after the entire microservice system is deployed into the actual cloud environment and put into use. Therefore, it is very necessary to monitor and collect data of the call between the microservice components.
+After obtaining the data of the communication between the service components in the past time T, the time T can be divided into n time periods. Thus, it defines £¬where  represents the kth time period. It defines the traffic between component i and component j in the time period K is . Therefore, it can be concluded that the average traffic  between microservice component i and component j in period T.
+		(1)
+		(2)
+		(3)
+
+ represents the average correlation degree by scheduling the container  to the physical machine .  and  represent the distance and bandwidth between theand the physical machine where component is located, represents the number of components associated with component ,  represents the overall average correlation degree of all components after being scheduled. 
+
+4 Resource scheduling model and load expression
+4.1 Resource scheduling of microservices
+Assuming that the number of available physical machine nodes in the cluster is m, the named physical machine set is . The single application is divided into n independent microservice components according to service functions, that is, the number of component containers to be created is n, ?and the set of the component containers is . The next job is to schedule these n component containers to run independently on m physical machines. The structure of the solution is as follows:
+		(4)
+Where  is a positive integer between 1 and m, for example, if there are 10 pending component containers and 6 active physical machines in the cluster, then a possible scheduling solution X = {2, 4, 4, 6, 3, 1, 2, 6, 2, 3}, indicating that the container whose number is 1 is assigned to the physical machine whose number is 2, and the container 2 is allocated to the physical machine 4, and so on.
+
+4.2 Load expression
+Another important factor in container scheduling is load balancing. If the server's load is too low, it can lead to waste of resources. If it is too high or even overload, it affects the performance of the server and indirectly affects the performance of components. Therefore, the rational use of the server's resources is essential.
+Assuming that there is a container set  on the physical machine  and the load of the container  is , it can be concluded that the load of the physical machine  is
+		(5)
+The resource required for Ck in container set  to be scheduled is . When the container Ck is scheduled to the physical machine Pi, the load of the physical machine Pi should be
+		(6)
+The load of the entire cluster under a scheduling scheme is
+		(7)
+Where
+		(8)
+It can be seen from Equation (7) that the smaller , the more balanced the cluster load. The load balancing in the cloud environment is the minimum value of finding .
+Through the above description of component relevance and cluster load balancing, it can get the comprehensive evaluation standard of microservice resource scheduling, and define the fitness function of resource scheduling as Equaton (9).
+		(9)
+In Equation (9), ¦Á and ¦Â are the weights of the fitness values set according to the user's preference for cluster load balancing and service performance, where ¦Á + ¦Â = 1, 0 ¡Ü ¦Á, ¦Â ¡Ü 1. To sum up, the smaller , the better performance.
+
+
+5 Optimization artificial bee colony algorithm
+Artificial Bee Colony Algorithm ( ABC) is a global optimization algorithm based on swarm intelligence proposed by Karaboga in 2005, whose intuitive background comes from the colony's behavior. The standard ABC algorithm divides the bees into three categories:employed bees, onlooker bees and scout bees, with the goal of the whole colony is to find the rich food sources (ie, the optimal solution to the problem). Among them, the employed bees try to find a new food sources based on the previous information and share information with the onlooker bees; Onlooker bees manage to find new food source according to the information shared by the employed bees; and Scout bees are looking for a new valuable food source.c.In onlooker bees phase: onlooker bees use roulette to choose the information shared by the employed bees£¬the probability of  being picked is £¬as shown in Equation (10).  is the fitness value of , which is calculated as Equation (11), where  is the objective function value of the problem to be solved.
+d.It memorizes the best food source found so far.
+e.In scout bees phase: it finds the food source whose iterations beyond the limit in the existing population, gives up the food source, and produces a new to replace. At the same time, according to the probability of mutation to determine the individual mutation operation, it selects the worst and the best individuals in current population to adapt the mutation operation. As shown in Equation (12)£¬ is a bit of the gene,is the mutation step, and the mutation probability  is shown in Equation (13), iter is the current iteration number, and Max_iter is the maximum number of iterations.
+		(10)
+		(11)
+		(12)
+		(13)
+
+
+Table 1 Pseudo code of OABC
+Input£ºSN, limit, pc, pm
+Output£ºBest Binding Set (BBS)
+1.   (Current iterations<max_Limit)
+Employed bees phase:
+2. 		For (i employed bee):
+3.       	Produce a new solution  around  and evaluateit.
+4.       	If(Fit()>Fit()):
+5.        	   Return 
+6. 			Else 
+7.				Return 
+8.  	
+9.  	 ( crossover probability> Pc):
+10.     	Find most suitable source good1 and good2
+11.			Cross good1,good2 to child1,child2      
+12.   		For(Fit(good1,good2,child1,child2))
+13.				Return the first two
+14.  	EndIf
+15.    Calculate the probability of selection of all honey sources
+      Onlooker bees phase:
+16.    For(i onlooker bee)
+17.      	If(random num>probability)
+18.    		Produce a new solution  around  and evaluateit.
+19.       		If(Fit()>Fit()):
+20.        	   Return 
+21. 			Else 
+22.					Return 
+23.       		EndIf
+24.       EndIf
+25.    
+26.    save the best source of global
+ 	   Scout bees phase:
+27.     IF(Current cycle>max_cycle)
+28.      	Produce a new solution to replace
+29.     else If(mutation probability>pm)
+30.          Find the most suitable source 
+31.           mutation to 
+32.        EndIf
+33.     EndIf
+34.  
+Figure 5 and 6 shows the comparison of overall load and service response time between the OABC algorithm and the ABC algorithm and greedy algorithm. The OABC algorithm has improved the load balance of the cluster and the response time of the service, and with the increasing of the number of component containers, the advantage of OABC is more obvious.Figure 7 and 8 shows the comparison of different preference levels of OABC algorithm. There are corresponding performance improvements in different preferences. The cluster load is improved when incline to load balancing (¦Á = 0.6, ¦Â = 0.4), and the corresponding service response time will decrease. The corresponding performance enhancement and attenuation can be obtained when the service performance is preferred.
+According to the above experiments, the OABC algorithm proposed in this paper is feasible and effective for containerized microservice resource scheduling.
+
+
+7 Conclusions
+In this paper, an optimized artificial bee colony algorithm (OABC) is proposed, which takes into account the cluster load and service performance under microservice architecture, by introducing component relevance. Experiments show that the OABC algorithm has a good convergence rate. It ensures that the resource scheduling of microservices can be completed as soon as possible, and the overall load of the cluster is more balanced, which effectively improves the performance of the service. Therefore, the algorithm proposed in this paper is effective, feasible and well applied in resource scheduling under the microservice architecture.
+
+Acknowledgments
+The subject is sponsored by the National Natural Science Foundation of P. R. China (No.61373017, No.61572260, No.61572261, No.61672296, No.61602261), the Natural Science Foundation of Jiangsu Province (No.BK20140886, No.BK20140888, No.BK20160089), Scientific & Technological Support Project of Jiangsu Province (No. BE2015702, No. BE2016777, BE2016185), China Postdoctoral Science Foundation (No.2014M551636, No.2014M561696), Jiangsu Planned Projects for Postdoctoral Research Funds (No.1302090B, No.1401005B), Jiangsu High Technology Research Key Laboratory for Wireless Sensor Networks Foundation (No.WSNLBZY201508), Research Innovation Program for College Graduates of Jiangsu Province (SJZZ16_0148).
+
+
+References
+[1] Yousif M. Microservice[J]. IEEE Cloud Computing, 2016, 3(5), 4-5.
+[2] E. Wolff, Microservice: Flexible Software Architecture[M]. New York: Addison-Wesley Professional, 2016.
+[3] Killalea T. The Hidden Dividends of Microservice[M]. New York: ACM, 2016.
+[4] Boettiger C. An introduction to Docker for reproducible research[J]. Acm Sigops Operating Systems Review, 2015, 49(1), 71-79.
+[5]Dua R, Raja A R, Kakadia D. Virtualization vs Containerization to Support PaaS[C]. IEEE International Conference on Cloud Engineering, March 11-14, 2014, Boston, MA, USA, 610-614.
+[6] Klock S, Jan Martijn E. M. Van Der Werf, Guelen J P, et al. Workload-Based Clustering of Coherent Feature Sets in Microservice Architectures[C]. IEEE International Conference on Software Architecture, April 3-5, 2017, Gothenburg, Sweden, 11-20.
+[7] Kratzke N. About Microservices, Containers and their Underestimated Impact on Network Performance[C]. Cloud Computing, March 22-27, 2015, Nice, France, 165-169.
+[8]Amaral M, Polo J, Carrera D, et al. Performance Evaluation of Microservice Architectures Using Containers[C]. International Symposium on Network Computing and Applications, September 28-30, 2015, Cambridge, MA, USA, 27-34.
+[9]Rusek M, Dwornicki G, Orlowski A. A Decentralized System for Load Balancing of Containerized Microservice in the Cloud[C]. International Conference on Systems Science, September 7-9, 2016, Wroclaw, Poland,142-152.
+[10] Guan X, Wan X, Choi B Y, et al. Application Oriented Dynamic Resource Allocation for Data Centers Using Docker Containers[J]. IEEE Communications Letters, 2017, 21(3), 504-507.
+[11] Kaewkasi C, Chuenmuneewong K. Improvement of container scheduling for Docker using Ant Colony Optimization[C]. International Conference on Knowledge and Smart Technology, February 1-2, 2017, Chonburi, Thailand, 254-259.
+[12] Zhao D, Mandagere N, Alatorre G, et al. Toward locality-aware scheduling for containerized cloud services[C]. IEEE International Conference on Big Data, October 29- November 1,2015, Santa Clara, CA, USA, 263-270.
+[13] Tao Y, Wang X, Xu X, et al. Dynamic Resource Allocation Algorithm for Container-Based Service Computing[C]. International Symposium on Autonomous Decentralized System, March 22-24, 2017, Bangkok, Thailand, 61-67.
+[14] Rusek M, Dwornicki G, Orlowski A. A Decentralized System for Load Balancing of Containerized Microservices in the Cloud[M]. Advances in Systems Science. Springer International Publishing, 2016:142-152.
+[15] Klock S, Jan Martijn E. M. Van Der Werf, Guelen J P, et al. Workload-Based Clustering of Coherent Feature Sets in Microservice Architectures[C]. International Conference on Software Architecture, April 3-7, 2017, Gothenburg, Sweden, 11-20.
+[16] Tao Z, Ying Z. Scheduling Model Cloud Computing Resource Based on Improved Artificial Bee Colony Algorithm[J]. Microelectronics & Computer, 2014, 31(7), 147-150.
+[17] Li H H, Fu Y W, Zhan Z H, et al. Renumber strategy enhanced particle swarm optimization for cloud computing resource scheduling[C]. Evolutionary Computation. May 25-28, 2015, Sendai, Japan, 870-876.
+[18] Kaewkasi C, Chuenmuneewong K. Improvement of container scheduling for Docker using Ant Colony Optimization[C]. International Conference on Knowledge and Smart Technology, February 1-2, 2017, Chonburi, Thailand, 254-259.
+[19] Freeman A. Docker Swarms[M]. Essential Docker for ASP.NET Core MVC. Apress, 2017.
+[20] Brewer E A. Kubernetes and the path to cloud native[C]. ACM Symposium on Cloud Computing, August 27 - 29, 2015, Kohala Coast, Hawaii, 167-167.
+[21] Saha P, Govindaraju M, Marru S, et al. Integrating Apache Airavata with Docker, Marathon, and Mesos[J]. Concurrency & Computation Practice & Experience, 2016, 28(7):1952-1959.
+[22] Draios Inc. Sysdig, February. 2017, [online] Available: http://www.sysdig.org.
+
+6 Experiment and analysis
+In this experiment, a microservice system of online shopping platform will be simulated, including services such as product inquiry, user information management, shopping cart, order management, payment management and so on. A user can use multiple functions, multiple users can use the same function, so that you can generate more service components.
+In this paper, it uses matlab R2014a as the simulation tool. It simulates 10 physical servers, with parameters listed as following: CPU [1-32], memory [10-128] GB, bandwidth [100-500], distance [0-100]. Simulate 10, 30, 50, 70, 100 component containers respectively£¬parameters: CPU [1-4], memory [1-5] GB. It sets the initial population size SN = 20, where the employed bees and the Onlooker bees each half (SN / 2). The maximum limit is 100, the maximum number of iterations is 500, the crossover probability is 0.6, and the initial mutation probability is 0.01.
+This paper achieves different preference by changing the weight (ie, ¦Á and ¦Â) of these two fitness functions (ie, ¦Á and ¦Â), the greater the weight, the higher the preference. In this experiment, three different weights (¦Á and ¦Â) are used: (0.6,0.4), (0.5,0.5) and (0.4,0.6).
+In this paper, we firstly compare the convergence of the improved artificial bee colony algorithm (OABC) with the original artificial bee colony algorithm (ABC) to verify that OABC algorithm has better convergence. Then compared with the ABC algorithm and the greedy algorithm in the overall load of the cluster and service response time to reflect the performance of the OABC algorithm under the scenario of containerized microservices.
+The artificial bee colony algorithm was originally proposed to solve the continuous optimization problem. Its original method is relatively poor in convergence and easy to fall into the local optimal solution. In this paper, the scheduling of containerized microservices is a discrete problem For the huge amount of data and frequent requests in the cloud computing environment, faster and more balanced delivery is required. Therefore, this paper improved artificial bee colony algorithm accordingly.
+The optimization artificial bee colony algorithm is shown as follows:
+a.In initial solution space, it sets the population size and the dimension of the problem, and randomly generates the initial solution.
+b.In employed bees phase£ºemployed bees search around  and adopt the greedy algorithm to make choices. At the same time, it adjusts cross-operate according to cross rate. In this paper, the two-point crossover method is used to increase the amount of excellent information of the parent relative to the traditional single point crossing. The detailed process is shown in Figure 3,
+3.2 Correlation degree predictive expression
+Microservices architecture is a method of splitting a single application into multiple small service components based on different functional or logical, each microservices component in the system can be deployed independently and loosely coupled with each other. In all cases, each microservices component focuses on the implementation of one task, each task represents a small business capability and communicates through a lightweight mechanism. Figure 2 shows the possible invocations between microservices components. Among them, A-I represents different service components, PC1-PC4 represents different physical hosts.
+
+3 Component service relevance scheduling model design
+3.1 System resource monitoring and correlation prediction model
+It is crucial to know the resource usage in the cluster before scheduling the microservice component. In the microservice architecture, case the two services with high frequency of communication are allocated to different physical machine which the bandwidth is smaller or farther away from each other, it will inevitably lead to the additional consumption of communication time, in the end it affects the overall performance of the service. Therefore, this paper introduces the component correlation prediction module to the traditional monitoring module, which can be used to analyze the frequency of communication between  different containers in the historical data. The scheduling system can finally make the best scheduling scheme based on these information.
